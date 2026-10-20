@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run VideoUpscale",
+			"type": "shell",
+			"command": "/opt/anaconda3/bin/python3",
+			"args": [
+				"upscale.py",
+				"--no-browser"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}

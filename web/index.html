@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VideoUpscale - Local video restoration</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><div class="eyebrow">LOCAL VIDEO RESTORATION</div><h1>A clearer view.</h1>
+      <p>Restore older footage. Keep the character. Everything stays on your Mac.</p>
+      <span class="badge">LOCAL PROCESSING / NO UPLOADS</span>
+    </header>
+    <section id="engines" class="notice" aria-live="polite">Checking video engines...</section>
+    <div class="layout">
+      <section class="panel controls">
+        <h2><span class="step">01</span> Choose your footage</h2>
+        <button id="pick" class="secondary">Choose AVI or MP4...</button>
+        <label for="path">Or paste an absolute file path</label>
+        <div class="path-row"><input id="path" type="text" placeholder="/Users/you/Movies/video.avi"><button id="inspect" class="secondary">Inspect</button></div>
+        <p id="metadata" class="muted">Your original file will never be overwritten.</p>
+        <hr>
+        <h2><span class="step">02</span> Restore &amp; upscale</h2>
+        <label for="backend">Upscaling engine</label>
+        <select id="backend"><option value="ffmpeg">Classic / FFmpeg Lanczos</option><option value="ai">AI / Real-ESRGAN x4plus (optional)</option></select>
+        <p class="hint">Classic is faster and preserves natural texture. AI can invent details and flicker between frames. Compare a short clip first.</p>
+        <div class="two-cols">
+          <div><label for="scale">Output size</label><select id="scale"><option value="1">1x / cleanup only</option><option value="2" selected>2x</option><option value="4">4x</option></select></div>
+          <div><label for="deinterlace">Interlacing cleanup</label><select id="deinterlace"><option value="auto">Auto / trust source flags</option><option value="off">Off / progressive source</option><option value="tff">Force / top field first</option><option value="bff">Force / bottom field first</option></select></div>
+        </div>
+        <p class="hint">Comb-like edges on motion usually indicate interlacing. Auto relies on metadata, not visual detection. Try a forced mode if flags are missing; persistent bands need different restoration.</p>
+        <label for="denoise">Noise reduction <output id="denoise-value">1.5</output></label>
+        <input id="denoise" type="range" min="0" max="6" step="0.25" value="1.5">
+        <label for="sharpen">Sharpening <output id="sharpen-value">0.35</output></label>
+        <input id="sharpen" type="range" min="0" max="1.5" step="0.05" value="0.35">
+        <p class="hint">Start gently: excess noise reduction smears texture; excess sharpening adds halos.</p>
+        <hr>
+        <h2><span class="step">03</span> Preview, then export</h2>
+        <div class="two-cols">
+          <div><label for="start">Preview start (seconds)</label><input id="start" type="number" min="0" step="0.1" value="0"></div>
+          <div><label for="seconds">Preview length (seconds)</label><input id="seconds" type="number" min="1" max="15" value="5"></div>
+        </div>
+        <div class="actions"><button id="preview" disabled>Generate preview</button><button id="export" class="secondary" disabled>Export full video</button></div>
+        <p class="hint">Exports: H.264 MP4 + AAC audio, original aspect ratio, no cropping. Interlaced footage uses double-rate deinterlacing to retain motion.</p>
+      </section>
+      <section class="panel comparison">
+        <div class="section-heading"><h2>See the difference</h2><span class="muted">BEFORE / AFTER</span></div>
+        <div id="empty" class="empty"><div class="film-icon">[ &gt; ]</div><h3>Give old footage a fresh start.</h3><p>Choose a video and generate a short preview.<br>Compare motion as well as fine detail.</p></div>
+        <div id="players" hidden>
+          <div class="player"><div class="player-label">ORIGINAL <span>Unfiltered preview</span></div><video id="original" controls playsinline preload="metadata"></video></div>
+          <div class="player"><div class="player-label">ENHANCED <span id="enhanced-label"></span></div><video id="enhanced" controls playsinline preload="metadata"></video></div>
+          <button id="play-both" class="secondary">Play both from start</button>
+          <p class="hint">Players start together; browser playback is not frame-locked. Pause and scrub to inspect details.</p>
+        </div>
+        <div id="job-panel" hidden aria-live="polite">
+          <div class="section-heading"><strong id="stage"></strong><button id="cancel" class="text-button">Cancel job</button></div>
+          <progress id="progress" max="100" value="0"></progress><p id="job-detail" class="muted"></p>
+        </div>
+        <div id="error" class="error" role="alert" hidden></div>
+        <div id="result" class="notice" hidden></div>
+        <details><summary>What this tool can (and cannot) restore</summary>
+          <p>AVI and MP4 are containers; codec support depends on your FFmpeg build. Cleanup runs before upscaling, with gentle sharpening last. AI uses individual frames, not a temporal video model.</p>
+          <p>This version targets SDR footage, one video and the first audio track. It does not preserve subtitles, chapters, extra audio tracks, HDR, or rotation. AI normalizes variable frame rate to constant frame rate and can use substantial temporary disk space.</p>
+          <p>No algorithm can recover the exact detail that was never recorded. Compare a moving scene before committing to a long export.</p>
+        </details>
+      </section>
+    </div>
+    <footer>Made for deliberate restoration, not artificial detail. <span id="output-dir"></span></footer>
+  </main>
+</body>
+</html>
